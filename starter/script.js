@@ -13,12 +13,14 @@ const inputElevation = document.querySelector('.form__input--elevation');
 
 
 const geoPosition = function (position) {
+
   const { latitude, longitude } = position.coords;
-  console.log(`https://www.google.com/maps/@${latitude},${longitude}`);
+  // console.log(`https://www.google.com/maps/@${latitude},${longitude}`);
 
   // const map = L.map('map').setView([51.505, -0.09], 13);
   const coordsArray = [latitude, longitude];
-  const map = L.map('map').setView(coordsArray, 14);
+  const map = L.map('map').setView(coordsArray, 15);
+  // console.log(map);
 
   // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
@@ -26,11 +28,27 @@ const geoPosition = function (position) {
   }).addTo(map);
 
   // L.marker([51.5, -0.09]).addTo(map)
-  L.marker(coordsArray)
-    .addTo(map)
-    .bindPopup('A pretty CSS3 popup.<br> Easily customizable.')
-    .openPopup();
+  // L.marker(coordsArray)
+  //   .addTo(map)
+  //   .bindPopup('A pretty CSS3 popup.<br> Easily customizable.')
+  //   .openPopup();
+  const marker = function (mapEvent) {
+    const { lat, lng } = mapEvent.latlng;
+    L.marker([ lat, lng ])
+      .addTo(map)
+      .bindPopup(L.popup({
+        maxWidth: 250,
+        minWidth: 100,
+        autoClose: false,
+        closeOnClick: false,
+        className: "running-popup",
+      }))
+      .setPopupContent("Workout")  
+      .openPopup();
+  };
 
+  map.on("click", marker);
+  
 };
 
 const geoPositionError = function () {
