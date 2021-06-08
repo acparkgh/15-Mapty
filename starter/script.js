@@ -71,9 +71,10 @@ class App {
 
   constructor() {
     this._getPosition();
-    form.addEventListener("submit", this._newWorkout.bind(this));
-    inputType.addEventListener("change", this._toggleElevationField);
-    containerWorkouts.addEventListener("click", this._moveToPopup.bind(this));
+    this._getLocalStorage();
+    form.addEventListener( "submit", this._newWorkout.bind(this) );
+    inputType.addEventListener( "change", this._toggleElevationField );
+    containerWorkouts.addEventListener( "click", this._moveToPopup.bind(this) );
   };
 
   _getPosition() {
@@ -97,7 +98,13 @@ class App {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(this.#map);
     
-    this.#map.on("click", this._showForm.bind(this));
+    this.#map.on( "click", this._showForm.bind(this) );
+
+    this.#workouts.forEach(function (workout) {
+      // this._renderWorkout(workout)
+      this._renderWorkoutMarker(workout)
+    }.bind(this));
+
   };
 
   _moveToPopup(event) {
@@ -106,14 +113,13 @@ class App {
     const workout = this.#workouts.find(function (workout) {
       return workout.id === workoutEl.dataset.id
     });
-
     this.#map.setView(workout.coords, this.#mapZoomLevel, {
       animate: true,
       pan: { duration: 1 },
     });
     
     //using the public interface "click"
-    workout.click();
+    // workout.click();
   };
 
   _showForm(mapE) {
@@ -185,8 +191,9 @@ class App {
     
     // Hide form and clear input fields
     this._hideForm();
-    // form.classList.add("hidden");
-    // inputDistance.value = inputDuration.value = inputCadence.value = inputElevation.value = "";
+    
+    // Set local storage to all workouts
+    this._setLocalStorage();
     
   };
   
@@ -259,11 +266,33 @@ class App {
     form.insertAdjacentHTML("afterend", html);
   };
 
+  _setLocalStorage() {
+    localStorage.setItem("workouts", JSON.stringify(this.#workouts));
+  };
 
+  _getLocalStorage() {
+
+    const localStorageData = JSON.parse(localStorage.getItem("workouts"));
+    
+    if (!localStorageData) return;
+    
+    this.#workouts = localStorageData;
+    
+    this.#workouts.forEach(function (workout) {
+      this._renderWorkout(workout)
+    }.bind(this));
+
+  };
+
+  reset() {
+    localStorage.removeItem("workouts");
+    location.reload();
+  };
 
 };
 
 const app = new App();
-console.log(app);
+
+
 
 
