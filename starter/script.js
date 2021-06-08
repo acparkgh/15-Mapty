@@ -13,6 +13,7 @@ class Workout {
   
   date = new Date();
   id = (Date.now() + "").slice(-10);
+  clicks = 0;
   
   constructor(coords, distance, duration) {
     this.coords = coords;
@@ -26,6 +27,9 @@ class Workout {
     this.description = `${this.type[0].toUpperCase()}${this.type.slice(1)} on ${months[this.date.getMonth()]} ${this.date.getDate()}`;
   };
   
+  click() {
+    this.clicks++;
+  };
   
 };
 
@@ -60,6 +64,7 @@ class Cycling extends Workout {
 
 class App {
 
+  #mapZoomLevel = 15;
   #map;
   #mapEvent;
   #workouts = [];
@@ -68,6 +73,7 @@ class App {
     this._getPosition();
     form.addEventListener("submit", this._newWorkout.bind(this));
     inputType.addEventListener("change", this._toggleElevationField);
+    containerWorkouts.addEventListener("click", this._moveToPopup.bind(this));
   };
 
   _getPosition() {
@@ -84,7 +90,7 @@ class App {
     const { latitude, longitude } = position.coords;
       // console.log(`https://www.google.com/maps/@${latitude},${longitude}`);
       // const map = L.map('map').setView([51.505, -0.09], 13);
-    this.#map = L.map('map').setView( [latitude, longitude], 15 );
+    this.#map = L.map('map').setView( [latitude, longitude], this.#mapZoomLevel );
       
       // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
@@ -92,6 +98,22 @@ class App {
     }).addTo(this.#map);
     
     this.#map.on("click", this._showForm.bind(this));
+  };
+
+  _moveToPopup(event) {
+    const workoutEl = event.target.closest("li.workout");
+    if (!workoutEl) return;
+    const workout = this.#workouts.find(function (workout) {
+      return workout.id === workoutEl.dataset.id
+    });
+
+    this.#map.setView(workout.coords, this.#mapZoomLevel, {
+      animate: true,
+      pan: { duration: 1 },
+    });
+    
+    //using the public interface "click"
+    workout.click();
   };
 
   _showForm(mapE) {
@@ -169,7 +191,7 @@ class App {
   };
   
   _renderWorkoutMarker(workout) {
-    console.log(workout);
+
     L.marker(workout.coords)
     // L.marker([ lat, lng ])
     .addTo(this.#map)
